@@ -1,0 +1,63 @@
+module jandc(
+
+    input clk, // 时钟信号
+    input [1:0] ctrl, // 控制信号
+    output reg [3:0] out // 步进电机控制信号
+
+    );
+parameter STOP = 2'b00; // 停止状态
+parameter CW = 2'b01; // 正转状态
+parameter CCW = 2'b10; // 反转状态
+parameter PAUSE = 2'b11; // 暂停状态
+
+reg [1:0] state; // 状态寄存器
+
+always@(posedge clk) begin
+    case(state)
+        STOP: begin
+            if(ctrl == CW) begin
+                out <= 4'b0001; // 控制信号为正转，输出0010
+                state <= CW;
+            end else if(ctrl == CCW) begin
+                out <= 4'b0100; // 控制信号为反转，输出0100
+                state <= CCW;
+            end
+        end
+        CW: begin
+            if(ctrl == STOP) begin
+                out <= 4'b0000; // 控制信号为停止，输出0000
+                state <= STOP;
+            end else if(ctrl == PAUSE) begin
+                out <= 4'b0000; // 控制信号为暂停，输出0000
+                state <= PAUSE;
+            end else begin
+                out <= out << 1; // 控制信号为正转，输出左移一位
+            end
+        end
+        CCW: begin
+            if(ctrl == STOP) begin
+                out <= 4'b0000; // 控制信号为停止，输出0000
+                state <= STOP;
+            end else if(ctrl == PAUSE) begin
+                out <= 4'b0000; // 控制信号为暂停，输出0000
+                state <= PAUSE;
+            end else begin
+                out <= out >> 1; // 控制信号为反转，输出右移一位
+            end
+        end
+        PAUSE: begin
+            if(ctrl == CW) begin
+                out <= 4'b0001; // 控制信号为正转，输出0010
+                state <= CW;
+            end else if(ctrl == CCW) begin
+                out <= 4'b0100; // 控制信号为反转，输出0100
+                state <= CCW;
+            end else if(ctrl == STOP) begin
+                out <= 4'b0000; // 控制信号为停止，输出0000
+                state <= STOP;
+            end
+        end
+    endcase
+end
+
+endmodule
